@@ -6,24 +6,6 @@ let words = [];
 let wordblocks = [];
 let wordsToWordblocks = {};
 
-function beginloop() {
-    var frameId = 0;
-    var lastFrame = Date.now();
-
-    function loop() {
-        var thisFrame = Date.now();
-        var elapsed = thisFrame - lastFrame;
-
-        frameId = window.requestAnimationFrame(loop);
-
-        currentScreen.update(elapsed);
-        currentScreen.draw(surface);
-
-        lastFrame = thisFrame;
-    }
-    loop();
-}
-
 canvas = $('div#main');
 
 function getRandomWord() {
@@ -53,7 +35,13 @@ function makeWordBlock(y, speed){
 
 
     wordblock.update = function(elapsed) {
-        const angle = Math.random() * Math.PI - Math.PI/2.; // replace with random function
+        const random = Math.random();
+        let angle;
+        if (random > 0.5) {
+            angle = Math.random() * Math.PI - Math.PI/2.; // replace with random function
+        } else {
+            angle = 0;
+        }
         const dx = speed * Math.cos(angle) * elapsed;
         const dy = speed * Math.sin(angle) * elapsed;
 
@@ -81,29 +69,52 @@ function makeWordBlock(y, speed){
 }
 
 mainGameScreen = (function() {
-    let rate = 1;
-    let numWords = 5;
-    let speed = 0.1;
-    let typedInput = "";
+    let initial = {
+        rate: 0.5,  // word blocks per SECOND
+        drate: 0.1,
+        speed: 0.05,
+        dspeed: 0.001,
+    };
 
-    let totalElapsed = 0;
+    let params = initial;
+
+    const timeIntervals = {
+        speed: 0,
+        dspeed: 1000,
+        rate: 0,
+        drate: 1000,
+        beforeLastAdd: 0,
+    }
+
+    let numWords = 5;
+    
+    let typedInput = "";
+    let missed = 0;
+
     let typedInputDiv = $("<input type='text' autofocus/>", {"class": "typed"});
     typedInputDiv.appendTo('body');
     typedInputDiv.text(typedInput);
     typedInputDiv.css({
         position: 'absolute',
-        bottom: 0,
+        bottom: '10px',
+        left: '10px',
     })
 
+    function addWordBlock() {
+        const windowHeight = $(window).height();
+        let random_y = Math.floor(Math.random() * windowHeight * 3/4);
+        let wordblock = makeWordBlock(random_y, params.speed);
+        words.push(wordblock.word);
+        wordblocks.push(wordblock);
+        wordsToWordblocks[wordblock.word] = wordblock;
+        // console.log(wordsToWordblocks);
+        // console.log(params);
+    }
+
     function start() {
-        for (var i = 0; i < numWords; i++) {
-            const windowHeight = $(window).height();
-            let random_y = Math.floor(Math.random() * windowHeight * 3/4);
-            let wordblock = makeWordBlock(random_y, speed);
-            words.push(wordblock.word);
-            wordblocks.push(wordblock);
-            wordsToWordblocks[wordblock.word] = wordblock;
-        }
+        // for (var i = 0; i < numWords; i++) {
+        //     addWordBlock();
+        // }
 
         typedInputDiv.on('input', function() {
             typedInput = typedInputDiv.val();
@@ -122,6 +133,7 @@ mainGameScreen = (function() {
             let result = wordblocks[i].update(elapsed);
             if (!result) {
                 indicesToRemove.push(i);
+                missed += 1
             }
         }
         indicesToRemove.sort(function(a, b) {
@@ -135,7 +147,30 @@ mainGameScreen = (function() {
             delete wordsToWordblocks[wb.word];
             words = words.filter(function(e){return e !== wb.word});
         }
-        totalElapsed += elapsed;
+
+        timeIntervals.speed += elapsed;
+        timeIntervals.rate += elapsed;
+        timeIntervals.beforeLastAdd += elapsed;
+
+        let wordBlocksToAdd = Math.floor(timeIntervals.beforeLastAdd * params.rate / 1000.);
+        if (wordBlocksToAdd > 0) {
+            let current = timeIntervals.beforeLastAdd;
+            timeIntervals.beforeLastAdd = current - wordBlocksToAdd * 1000 / params.rate;
+            for (var i = 0; i < wordBlocksToAdd; i++) {
+                addWordBlock();
+            }
+        }
+
+        if (timeIntervals.speed > timeIntervals.dspeed) {
+            timeIntervals.speed = 0;
+            params.speed += initial.dspeed;
+        };
+
+        if (timeIntervals.rate > timeIntervals.drate) {
+            timeIntervals.rate = 0;
+            timeIntervals.rate += initial.drate;
+        };
+
     }
 
     function removeWordBlock(word) {
