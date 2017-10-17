@@ -37,7 +37,7 @@ function makeWordBlock(y, speed){
     wordblock.update = function(elapsed) {
         const random = Math.random();
         let angle;
-        if (random > 0.5) {
+        if (random > 0.8) {
             angle = Math.random() * Math.PI - Math.PI/2.; // replace with random function
         } else {
             angle = 0;
@@ -51,7 +51,7 @@ function makeWordBlock(y, speed){
             left: currentPos.left + dx
         };
 
-        if (newPos.top > $(window).height() || newPos.left > $(window).width()) {
+        if (newPos.top > $(window).height() || newPos.left + this.width() > $(window).width()) {
             this.destroy();
             return false;
         }
@@ -72,7 +72,7 @@ mainGameScreen = (function() {
     let initial = {
         rate: 0.5,  // word blocks per SECOND
         drate: 0.1,
-        speed: 0.05,
+        speed: 0.1,
         dspeed: 0.001,
     };
 
@@ -205,6 +205,21 @@ function beginLoop() {
         currentScreen.update(elapsed);
         lastFrame = thisFrame;
     }
+
+    let paused = false;
+    window.addEventListener('keypress', function(e) {
+        if (e.code === 'Space') {
+            if (paused) {
+                // unpause game
+                id = setInterval(frame, interval);
+                lastFrame = Date.now();
+            } else {
+                // pause game
+                clearInterval(id);
+            }
+            paused = !paused;
+        }
+    }, true)
 }
 
 beginLoop();
