@@ -6,7 +6,7 @@ let words = [];
 let wordblocks = [];
 let wordsToWordblocks = {};
 
-canvas = $('div#main');
+canvas = $('div#board');
 
 function getRandomWord() {
     while (true) {
@@ -24,7 +24,7 @@ function makeWordBlock(y, speed){
     }
 
     const wordblock = $("<div>", {"class": "word"});
-    wordblock.appendTo('body');
+    canvas.append(wordblock);
     wordblock.word = getRandomWord();
     wordblock.text(wordblock.word);
     wordblock.css({
@@ -70,10 +70,10 @@ function makeWordBlock(y, speed){
 
 mainGameScreen = (function() {
     let initial = {
-        rate: 0.5,  // word blocks per SECOND
-        drate: 0.1,
+        rate: 0.8,  // word blocks per SECOND
+        drate: 0.5,
         speed: 0.1,
-        dspeed: 0.001,
+        dspeed: 0.0005,
     };
 
     let params = initial;
@@ -90,15 +90,13 @@ mainGameScreen = (function() {
     
     let typedInput = "";
     let missed = 0;
+    let score = 0;
+    let maxMissed = 20;
+    let gameOver = true;
 
     let typedInputDiv = $("<input type='text' autofocus/>", {"class": "typed"});
-    typedInputDiv.appendTo('body');
-    typedInputDiv.text(typedInput);
-    typedInputDiv.css({
-        position: 'absolute',
-        bottom: '10px',
-        left: '10px',
-    })
+
+    let scoresDiv = $("<div>", {"class": "missed"});
 
     function addWordBlock() {
         const windowHeight = $(window).height();
@@ -107,22 +105,34 @@ mainGameScreen = (function() {
         words.push(wordblock.word);
         wordblocks.push(wordblock);
         wordsToWordblocks[wordblock.word] = wordblock;
-        // console.log(wordsToWordblocks);
-        // console.log(params);
     }
 
     function start() {
-        // for (var i = 0; i < numWords; i++) {
-        //     addWordBlock();
-        // }
+        canvas.append(typedInputDiv)
+        typedInputDiv.text(typedInput);
+        typedInputDiv.css({
+            position: 'absolute',
+            bottom: '10px',
+            left: '10px',
+        })
 
+        canvas.append(scoresDiv);
+        scoresDiv.css({
+            position: 'absolute',
+            bottom: '10px',
+            right: '10px',
+        })
+        scoresDiv.text("Score: " + score + " Missed: " + missed);
+        
         typedInputDiv.on('input', function() {
-            typedInput = typedInputDiv.val();
+            typedInput = typedInputDiv.val().trim();
 
             if (typedInput in wordsToWordblocks) {
                 wordsToWordblocks[typedInput].destroy()
-                currentScreen.removeWordBlock(typedInput);
+                removeWordBlock(typedInput);
+                score += 1;
                 typedInputDiv.val('');
+                scoresDiv.text("Score: " + score + " Missed: " + missed);
             }
         })
     }
@@ -134,6 +144,10 @@ mainGameScreen = (function() {
             if (!result) {
                 indicesToRemove.push(i);
                 missed += 1
+                scoresDiv.text("Score: " + score + " Missed: " + missed);
+                if (missed >= maxMissed) {
+                    gameOver = true;
+                }
             }
         }
         indicesToRemove.sort(function(a, b) {
@@ -179,22 +193,19 @@ mainGameScreen = (function() {
         wordblocks = wordblocks.filter(function(e){return e.word !== word})
     }
 
+    function isGameOver() {
+        return gameOver;
+    }
+
     return {
         start: start,
         update: update,
-        removeWordBlock: removeWordBlock,
     }
-}())
-
-currentScreen = (function() {
-    // currentScreen = mainGameScreen;
-    // currentScreen.start();
-    return mainGameScreen;
 }())
 
 function beginLoop() {
     var lastFrame = Date.now();
-    currentScreen.start();
+    mainGameScreen.start();
     const interval = 50;
     var id = setInterval(frame, interval);
 
@@ -202,7 +213,7 @@ function beginLoop() {
         var thisFrame = Date.now();
         var elapsed = thisFrame - lastFrame;
 
-        currentScreen.update(elapsed);
+        mainGameScreen.update(elapsed);
         lastFrame = thisFrame;
     }
 
@@ -222,4 +233,16 @@ function beginLoop() {
     }, true)
 }
 
-beginLoop();
+currentScreen = (function() {
+
+    function startGame() {
+        $('div#intro').hide();
+        beginLoop();
+    }
+
+    return {
+        startGame: startGame,
+    }
+}())
+
+// currentScreen.startGame();

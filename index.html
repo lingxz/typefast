@@ -7,9 +7,36 @@
   <title>TypeFast</title>
   <meta name="description" content="A typing game">
   <meta name="author" content="Lingyi Hu">
-  <link rel="stylesheet" href="https://unpkg.com/sakura.css/css/sakura.css" type="text/css">
-
-  <!-- <link rel="stylesheet" href="css/styles.css?v=1.0"> -->
+  <link rel="stylesheet" href="https://cdn.concisecss.com/concise.min.css">
+  <style>
+    :root {
+      background-color: #f9f9f9;
+    };
+    body {
+      background-color: #f9f9f9;
+    }
+    * {
+      font-family: Helvetica, Arial, sans-serif;
+    }
+    h1,h2,h3,h4,h5,h6 {
+      color: #222;
+      font-family: Helvetica, Arial, sans-serif;
+    }
+    #intro {
+      padding: 13px;
+      max-width: 650px;
+      margin: 0 auto;
+      font-size: 1.8rem;
+    }
+    input:not([type=submit]):not([type=range]), select, textarea {
+      width: auto;
+      min-height: 0;
+      padding: 6px 10px;
+      background-color: #f1f1f1;
+      border-radius: 4px;
+      border: 1px solid #f1f1f1;
+    }
+  </style>
 
   <!--[if lt IE 9]>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.js"></script>
@@ -17,8 +44,13 @@
 </head>
 
 <body>
-  <div id="board"/></div>
+  <div id="intro">
+    <h1>Typefast</h1>
+    <p>This is a game of speed. Words will appear on the screen. Type them in the box to make them disappar. Once you miss 20 words, you lose. You can pause by hitting the space key.</p>
+    <button onclick="currentScreen.startGame()">Click here to start the game.</button>
+  </div>
 
+  <div id="board"/></div>
   <script
     src="https://code.jquery.com/jquery-3.2.1.min.js"
     integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
