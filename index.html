@@ -28,6 +28,14 @@
       margin: 0 auto;
       font-size: 1.8rem;
     }
+
+    #gameover {
+      padding: 13px;
+      max-width: 650px;
+      margin: 0 auto;
+      font-size: 1.8rem;
+      text-align: center;
+    }
     input:not([type=submit]):not([type=range]), select, textarea {
       width: auto;
       min-height: 0;
@@ -51,6 +59,14 @@
   </div>
 
   <div id="board"/></div>
+  <div id="gameover" style="display: none;">
+    <h1>Game Over!</h1>
+    <p style="margin-top: 1em;">
+      <div>Your score was <div id="score" style="display:inline-block;"></div>.</div>
+      <div id="end-of-game-message" style="margin-top: 1em;">Congrats!</div>
+    </p>
+    <button onclick="currentScreen.restartGame()">Click here to replay</button>
+  </div>
   <script
     src="https://code.jquery.com/jquery-3.2.1.min.js"
     integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="

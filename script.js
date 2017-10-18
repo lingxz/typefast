@@ -69,34 +69,51 @@ function makeWordBlock(y, speed){
 }
 
 mainGameScreen = (function() {
-    let initial = {
-        rate: 0.8,  // word blocks per SECOND
-        drate: 0.5,
-        speed: 0.1,
-        dspeed: 0.0005,
-    };
 
-    let params = initial;
+    let initial,
+        params,
+        timeintervals,
+        numwords,
+        typedInput,
+        missed,
+        score,
+        maxMissed,
+        gameOver,
+        typedInputDiv,
+        scoresDiv;
 
-    const timeIntervals = {
-        speed: 0,
-        dspeed: 1000,
-        rate: 0,
-        drate: 1000,
-        beforeLastAdd: 0,
+    function setInitialParams() {
+        initial = {
+            rate: 0.8,  // word blocks per SECOND
+            drate: 0.5,
+            speed: 0.1,
+            dspeed: 0.0005,
+        };
+
+        params = initial;
+
+        timeIntervals = {
+            speed: 0,
+            dspeed: 1000,
+            rate: 0,
+            drate: 1000,
+            beforeLastAdd: 0,
+        }
+
+        numWords = 5;
+        
+        typedInput = "";
+        missed = 0;
+        score = 0;
+        maxMissed = 2;
+        gameOver = false;
+
+        typedInputDiv = $("<input type='text' autofocus/>", {"class": "typed"});
+
+        scoresDiv = $("<div>", {"class": "missed"});
     }
 
-    let numWords = 5;
-    
-    let typedInput = "";
-    let missed = 0;
-    let score = 0;
-    let maxMissed = 20;
-    let gameOver = true;
-
-    let typedInputDiv = $("<input type='text' autofocus/>", {"class": "typed"});
-
-    let scoresDiv = $("<div>", {"class": "missed"});
+    setInitialParams();
 
     function addWordBlock() {
         const windowHeight = $(window).height();
@@ -123,7 +140,7 @@ mainGameScreen = (function() {
             right: '10px',
         })
         scoresDiv.text("Score: " + score + " Missed: " + missed);
-        
+
         typedInputDiv.on('input', function() {
             typedInput = typedInputDiv.val().trim();
 
@@ -197,52 +214,78 @@ mainGameScreen = (function() {
         return gameOver;
     }
 
+    function getGameScore() {
+        return score;
+    }
+
     return {
         start: start,
         update: update,
+        isGameOver: isGameOver,
+        getGameScore: getGameScore,
+        reset: setInitialParams,
     }
 }())
 
-function beginLoop() {
-    var lastFrame = Date.now();
-    mainGameScreen.start();
-    const interval = 50;
-    var id = setInterval(frame, interval);
-
-    function frame() {
-        var thisFrame = Date.now();
-        var elapsed = thisFrame - lastFrame;
-
-        mainGameScreen.update(elapsed);
-        lastFrame = thisFrame;
-    }
-
-    let paused = false;
-    window.addEventListener('keypress', function(e) {
-        if (e.code === 'Space') {
-            if (paused) {
-                // unpause game
-                id = setInterval(frame, interval);
-                lastFrame = Date.now();
-            } else {
-                // pause game
-                clearInterval(id);
-            }
-            paused = !paused;
-        }
-    }, true)
-}
 
 currentScreen = (function() {
 
     function startGame() {
+        canvas.empty();
         $('div#intro').hide();
         beginLoop();
     }
 
+    function restartGame() {
+        $('div#gameover').hide();
+        mainGameScreen.reset();
+        beginLoop();
+    }
+
+    function endGame() {
+        // console.log("game ended!");
+        canvas.empty();
+        $("div#gameover").show();
+        const score = mainGameScreen.getGameScore();
+        $("div#score").text(score);
+    }
+
+    function beginLoop() {
+        var lastFrame = Date.now();
+        mainGameScreen.start();
+        const interval = 50;
+        var id = setInterval(frame, interval);
+
+        function frame() {
+            var thisFrame = Date.now();
+            var elapsed = thisFrame - lastFrame;
+
+            mainGameScreen.update(elapsed);
+            if (mainGameScreen.isGameOver()) {
+                clearInterval(id);
+                endGame();
+            }
+            lastFrame = thisFrame;
+        }
+
+        let paused = false;
+        window.addEventListener('keypress', function(e) {
+            if (e.code === 'Space') {
+                if (paused) {
+                    // unpause game
+                    id = setInterval(frame, interval);
+                    lastFrame = Date.now();
+                } else {
+                    // pause game
+                    clearInterval(id);
+                }
+                paused = !paused;
+            }
+        }, true)
+    }
+
     return {
         startGame: startGame,
+        restartGame: restartGame,
     }
 }())
-
-// currentScreen.startGame();
