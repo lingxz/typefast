@@ -8,6 +8,15 @@ let wordsToWordblocks = {};
 
 canvas = $('div#board');
 
+jQuery.fn.center = function () {
+    this.css("position","absolute");
+    this.css("top", Math.max(0, (($(window).height() - $(this).outerHeight()) / 2) + 
+                                                $(window).scrollTop()) + "px");
+    this.css("left", Math.max(0, (($(window).width() - $(this).outerWidth()) / 2) + 
+                                                $(window).scrollLeft()) + "px");
+    return this;
+}
+
 function getRandomWord() {
     while (true) {
         let randomWord = wordlist[Math.floor(Math.random()*wordlist.length)];
@@ -108,7 +117,7 @@ mainGameScreen = (function() {
         maxMissed = 2;
         gameOver = false;
 
-        typedInputDiv = $("<input type='text' autofocus/>", {"class": "typed"});
+        typedInputDiv = $("<input type='text' autofocus/>", {"id": "game-input", "class": "typed"});
 
         scoresDiv = $("<div>", {"class": "missed"});
     }
@@ -132,6 +141,7 @@ mainGameScreen = (function() {
             bottom: '10px',
             left: '10px',
         })
+        typedInputDiv.focus();
 
         canvas.append(scoresDiv);
         scoresDiv.css({
@@ -152,6 +162,15 @@ mainGameScreen = (function() {
                 scoresDiv.text("Score: " + score + " Missed: " + missed);
             }
         })
+    }
+
+    function pause() {
+        typedInputDiv.prop("disabled", true);
+    }
+
+    function unpause() {
+        typedInputDiv.prop("disabled", false);
+        typedInputDiv.focus();
     }
 
     function update(elapsed) {
@@ -224,19 +243,26 @@ mainGameScreen = (function() {
         isGameOver: isGameOver,
         getGameScore: getGameScore,
         reset: setInitialParams,
+        pause: pause,
+        unpause: unpause,
     }
 }())
 
 
 currentScreen = (function() {
+    
+    let interval_ids = [];
 
     function startGame() {
+        clearAllIntervals();
         canvas.empty();
+        $("typed")
         $('div#intro').hide();
         beginLoop();
     }
 
     function restartGame() {
+        clearAllIntervals();
         $('div#gameover').hide();
         mainGameScreen.reset();
         beginLoop();
@@ -244,17 +270,21 @@ currentScreen = (function() {
 
     function endGame() {
         // console.log("game ended!");
+        $("#pause-screen").hide();
         canvas.empty();
         $("div#gameover").show();
+        clearAllIntervals();
         const score = mainGameScreen.getGameScore();
         $("div#score").text(score);
     }
 
     function beginLoop() {
+        canvas.css("opacity", 1);
         var lastFrame = Date.now();
         mainGameScreen.start();
         const interval = 50;
-        var id = setInterval(frame, interval);
+        id = setInterval(frame, interval);
+        interval_ids.push(id);
 
         function frame() {
             var thisFrame = Date.now();
@@ -273,19 +303,34 @@ currentScreen = (function() {
             if (e.code === 'Space') {
                 if (paused) {
                     // unpause game
-                    id = setInterval(frame, interval);
+                    canvas.css("opacity", 1);
+                    $('div#pause-screen').hide();
+                    mainGameScreen.unpause();
+                    let id = setInterval(frame, interval);
+                    interval_ids.push(id);
                     lastFrame = Date.now();
                 } else {
+                    $('div#pause-screen').center();
+                    $('div#pause-screen').show();
+                    canvas.css("opacity", 0.4);
                     // pause game
-                    clearInterval(id);
+                    clearAllIntervals();
+                    mainGameScreen.pause();
                 }
                 paused = !paused;
             }
         }, true)
     }
 
+    function clearAllIntervals() {
+        for (var i = interval_ids.length - 1; i >= 0; i--) {
+            clearInterval(interval_ids[i]);
+        }
+    }
+
     return {
         startGame: startGame,
         restartGame: restartGame,
+        endGame: endGame,
     }
 }())

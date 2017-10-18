@@ -29,7 +29,7 @@
       font-size: 1.8rem;
     }
 
-    #gameover {
+    #gameover,#pause-screen {
       padding: 13px;
       max-width: 650px;
       margin: 0 auto;
@@ -66,6 +66,11 @@
       <div id="end-of-game-message" style="margin-top: 1em;">Congrats!</div>
     </p>
     <button onclick="currentScreen.restartGame()">Click here to replay</button>
+  </div>
+
+  <div id="pause-screen" style="display: none;">
+    Press the space button to resume game, or<br>
+    <button onclick="currentScreen.endGame()">Click here to end game</button>
   </div>
   <script
     src="https://code.jquery.com/jquery-3.2.1.min.js"
