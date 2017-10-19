@@ -94,8 +94,8 @@ mainGameScreen = (function() {
     function setInitialParams() {
         initial = {
             rate: 0.8,  // word blocks per SECOND
-            drate: 0.5,
-            speed: 0.1,
+            drate: 0.03,
+            speed: 0.05,
             dspeed: 0.0005,
         };
 
@@ -114,7 +114,7 @@ mainGameScreen = (function() {
         typedInput = "";
         missed = 0;
         score = 0;
-        maxMissed = 2;
+        maxMissed = 3;
         gameOver = false;
 
         typedInputDiv = $("<input type='text' autofocus/>", {"id": "game-input", "class": "typed"});
@@ -218,7 +218,7 @@ mainGameScreen = (function() {
 
         if (timeIntervals.rate > timeIntervals.drate) {
             timeIntervals.rate = 0;
-            timeIntervals.rate += initial.drate;
+            params.rate += initial.drate;
         };
 
     }
