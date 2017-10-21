@@ -286,10 +286,29 @@ currentScreen = (function() {
     function endGame() {
         $("#pause-screen").hide();
         canvas.empty();
-        $("div#gameover").show();
         clearAllIntervals();
         const score = mainGameScreen.getGameScore();
+        const highscore = localStorage.getItem("typefast-highscore");
+        let newHighScore = false;
+        if (highscore !== null) {
+            console.log(highscore);
+            console.log(score);
+            if (score > highscore) {
+                localStorage.setItem("typefast-highscore", score);
+                newHighScore = true;
+            }
+            $('#prev-highscore').text(highscore);
+        } else {
+            localStorage.setItem("typefast-highscore", score);
+            $('#prev-highscore-div').hide();
+        }
+        if (!newHighScore) {
+            $('#highscore-congrats').hide();
+        } else {
+            $('#highscore-congrats').show();
+        }
         $("div#score").text(score);
+        $("div#gameover").show();
     }
 
     function beginLoop() {
