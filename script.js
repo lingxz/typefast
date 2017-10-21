@@ -89,17 +89,22 @@ mainGameScreen = (function() {
         maxMissed,
         gameOver,
         typedInputDiv,
-        scoresDiv;
+        scoresDiv,
+        maxParams;
 
     function setInitialParams() {
         initial = {
-            rate: 0.8,  // word blocks per SECOND
-            drate: 0.03,
-            speed: 0.05,
-            dspeed: 0.0005,
+            rate: 0.5,  // word blocks per SECOND
+            drate: 0.01,
+            speed: 0.03,
+            dspeed: 0.0002,
         };
 
         params = initial;
+        maxParams = {
+            rate: 1.33,
+            speed: 0.1,
+        }
 
         timeIntervals = {
             speed: 0,
@@ -162,6 +167,12 @@ mainGameScreen = (function() {
                 scoresDiv.text("Score: " + score + " Missed: " + missed);
             }
         })
+        typedInputDiv.keypress(function(e) {
+            if (e.which == 13) {
+                // clear input on enter
+                typedInputDiv.val('');
+            }
+        })
     }
 
     function pause() {
@@ -213,12 +224,16 @@ mainGameScreen = (function() {
 
         if (timeIntervals.speed > timeIntervals.dspeed) {
             timeIntervals.speed = 0;
-            params.speed += initial.dspeed;
+            if (params.speed < maxParams.speed) {
+                params.speed += initial.dspeed;
+            }
         };
 
         if (timeIntervals.rate > timeIntervals.drate) {
             timeIntervals.rate = 0;
-            params.rate += initial.drate;
+            if (params.rate < maxParams.rate) {
+                params.rate += initial.drate;
+            }
         };
 
     }
@@ -269,7 +284,6 @@ currentScreen = (function() {
     }
 
     function endGame() {
-        // console.log("game ended!");
         $("#pause-screen").hide();
         canvas.empty();
         $("div#gameover").show();
